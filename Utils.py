@@ -74,3 +74,10 @@ def es_float(cadena):
         return True
     except ValueError:
         return False
+    
+def format_ln(line):
+    line = re.sub(r';.*$','', line).strip()
+    line = re.sub(r'(\".*?\")', lambda m: m.group(0).replace(" ", "<SPACE>"), line)
+    line = re.sub(r'\s+',' ', line).strip()
+    line = re.sub(r'\<SPACE\>', ' ', line)
+    return line

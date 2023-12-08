@@ -27,7 +27,7 @@ def body_asn(write_file, operacionesOrden):
                         "   mov  es,ax\n")
         
 
-def makeASN(write_file, leer_file, name, nameAsignation, valueAsignation, impEnable, readEnable, operacionesOrden, content_count):
+def makeASN(write_file, leer_file, nameAsignation, valueAsignation, impEnable, readEnable, operacionesOrden, content_count):
         for line in leer_file:
             find = False
             aux = line.strip().split()

@@ -19,9 +19,9 @@ def compAN():
     exploradorJW = ansia()
     count = 0
 
-    #Sintaxis del archivo
     name = "AstroNova"
     name_txt = name + ".asn"
+    
     try:
         with open(name_txt, "r") as leer_file:
             with open(name+".dep", "w") as write_file:
@@ -195,7 +195,7 @@ def compAN():
         with open(name + ".dep", "r") as leer_file, open(name + ".ASM", "w") as write_file:
             head_asn(write_file)
             content_count = 1
-            makeASN(write_file, leer_file, name, nasign, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
+            makeASN(write_file, leer_file, nasign, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
             body_asn(write_file, operacionesOrden)
     except EnvironmentError:
         print("No se encontró el archivo")
