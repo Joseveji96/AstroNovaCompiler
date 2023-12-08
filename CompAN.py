@@ -195,8 +195,8 @@ def compAN():
         with open(name + ".dep", "r") as leer_file, open(name + ".ASM", "w") as write_file:
             head_asn(write_file)
             content_count = 1
+            body_asn(write_file)
             makeASN(write_file, leer_file, nasign, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
-            body_asn(write_file, operacionesOrden)
     except EnvironmentError:
         print("No se encontró el archivo")
     

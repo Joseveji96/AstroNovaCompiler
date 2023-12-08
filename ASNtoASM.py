@@ -10,7 +10,7 @@ def head_asn(write_file):
                         "datos   segment para public 'data'\n"
                         "    empty       db      13, 10, '$'\n")
         
-def body_asn(write_file, operacionesOrden):
+def body_asn(write_file):
         write_file.write("datos  ends \n"
                         "extra   segment para public 'data'\n"
                         "extra   ends\n\n"
@@ -76,3 +76,6 @@ def makeASN(write_file, leer_file, nameAsignation, valueAsignation, impEnable, r
                         "pp   endp \n"
                         "codigo ends \n"
                         "   end pp \n")
+
+
+
