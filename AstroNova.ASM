@@ -30,16 +30,13 @@ pp      proc    far
     esc_third db '  25$'
     leer_third db 254,?,254 dup('$')
     IMPRIMIR esc_cadena, empty
-    IMPRIMIR esc_cadena, empty
     IMPRIMIR esc_b, empty
     IMPRIMIR text_1, empty
     LEER leer_cadena, empty
     IMPRIMIR leer_cadena, empty
     IMPRIMIR esc_first, empty
     LEER leer_first, empty
-    LEER leer_first, empty
     IMPRIMIR leer_first, empty
-    IMPRIMIR esc_third, empty
     IMPRIMIR esc_third, empty
     LEER leer_third, empty
     IMPRIMIR leer_third, empty

@@ -2,6 +2,7 @@ import re
 from Utils import ValidarImpLeer
 
 def head_asn(write_file):
+    # Escribe las primeras líneas del archivo de salida
         write_file.write("include MACROS.INC\n"
                         "pila    segment para stack 'stack'\n"
                         "        dw 500 dup(?)\n"
@@ -11,6 +12,7 @@ def head_asn(write_file):
                         "    empty       db      13, 10, '$'\n")
         
 def body_asn(write_file):
+    # Escribe las líneas del segmento de datos y código
         write_file.write("datos  ends \n"
                         "extra   segment para public 'data'\n"
                         "extra   ends\n\n"
@@ -27,55 +29,60 @@ def body_asn(write_file):
                         "   mov  es,ax\n")
         
 
-def makeASN(write_file, leer_file, nameAsignation, valueAsignation, impEnable, readEnable, operacionesOrden, content_count):
-        for line in leer_file:
-            find = False
-            aux = line.strip().split()
-            validar = ValidarImpLeer(line)
+def makeASN(wf, lf, asign, valueAsignation, imp, read, alineacion, cc):
+    # Recorremos cada línea en el archivo de entrada
+    for line in lf:
+        detect  = False  # Variable para rastrear si se encontró una operación válida en la línea
+        comp  = ValidarImpLeer(line)  # Determinamos si la línea es de imprimir o leer
 
-            if validar != "ninguna":
-                for index, i in enumerate(nameAsignation):
-                    if i in line and validar == "imprimir" and not impEnable[index]:
-                        write_file.write(f"    esc_{i} db '  {valueAsignation[index]}$'\n")
-                        impEnable[index] = True
-                        operacionesOrden.append(f"IMPRIMIR esc_{i}, empty")
-                        find = True
-                    elif i in line and validar == "imprimir" and readEnable[index] == False:
-                        operacionesOrden.append(f"IMPRIMIR esc_{i}, empty")
-                        find = True
-                    elif i in line and validar == "leer" and readEnable[index] == False:
-                        write_file.write(f"    leer_{i} db 254,?,254 dup('$')\n")
-                        readEnable[index] = True
-                        operacionesOrden.append(f"LEER leer_{i}, empty")
-                        impEnable[index] = True
-                        find = True 
-                    elif i in line and validar == "imprimir" and impEnable[index] == True and readEnable[index] == True:
-                        operacionesOrden.append(f"IMPRIMIR leer_{i}, empty")
-                        find = True
-                    elif i in line and validar == "leer" and readEnable[index] == True:
-                        operacionesOrden.append(f"LEER leer_{i}, empty")
-                        find = True
+        if comp  == "imprimir":
+            # Buscamos variables para imprimir en la línea
+            for index, i in enumerate(asign):
+                if i in line and not imp[index]:
+                    wf.write(f"    esc_{i} db '  {valueAsignation[index]}$'\n")
+                    imp[index] = True
+                    alineacion.append(f"IMPRIMIR esc_{i}, empty")
+                    detect  = True
+                elif i in line and imp[index] and read[index]:
+                    # Si ya se imprimió o leyó esta variable, la añadimos nuevamente para mantener consistencia
+                    alineacion.append(f"IMPRIMIR leer_{i}, empty")
+                    detect  = True
 
+            # Si no se encontraron variables para imprimir, revisamos si hay una cadena directa
+            if not detect :
+                match = re.search(r'"([^"]+)"', line)
+                if match:
+                    texto_entre_comillas = match.group(1)
+                    wf.write(f"    text_{cc} db '  {texto_entre_comillas}$'\n")
+                    alineacion.append(f"IMPRIMIR text_{cc}, empty")
+                    cc += 1
+                else:
+                    print("ERROR: no se encontró ninguna cadena para ASM")
 
-                if find == False and validar == "imprimir":
-                    match = re.search(r'"([^"]+)"', line)
-                    if match:
-                        texto_entre_comillas = match.group(1)
-                        write_file.write(f"    text_{content_count} db '  {texto_entre_comillas}$'\n")
-                        operacionesOrden.append(f"IMPRIMIR text_{content_count}, empty")
-                        content_count += 1 
-                    else:
-                        print("ERROR: no se encontró ninguna cadena para ASM")
+        elif comp  == "leer":
+            # Buscamos variables para leer en la línea
+            for index, i in enumerate(asign):
+                if i in line and not read[index]:
+                    wf.write(f"    leer_{i} db 254,?,254 dup('$')\n")
+                    read[index] = True
+                    alineacion.append(f"LEER leer_{i}, empty")
+                    imp[index] = True
+                    detect  = True
 
-    
+            # Si no se encontraron variables para leer, revisamos si ya se leyó e imprimió la variable
+            if not detect  and imp[index] and read[index]:
+                alineacion.append(f"LEER leer_{i}, empty")
+                detect  = True
 
-        for i in range(len(operacionesOrden)):
-            write_file.write("    "+operacionesOrden[i] + "\n")
+    # Escribimos las operaciones generadas en el archivo de salida
+    for i in range(len(alineacion)):
+        wf.write("    " + alineacion[i] + "\n")
 
-        write_file.write("   ret \n"
-                        "pp   endp \n"
-                        "codigo ends \n"
-                        "   end pp \n")
+    # Escribimos el bloque final del archivo ASM
+    wf.write("   ret \n"
+             "pp   endp \n"
+             "codigo ends \n"
+             "   end pp \n")
 
 
 
