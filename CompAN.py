@@ -1,9 +1,9 @@
 import  re  
 from Utils import tableResults
 from SintAnalizer import AnSiA as ansia
-from Utils import validar_variable, validar_ciclos_condiciones, validarCiclosCondiciones, ValidarImpLeer, format_ln
+from Utils import validar_variable, validar_ciclos_condiciones, validarCiclosCondiciones, verifyImpRead, format_ln
 from ASNtoASM import head_asn, body_asn, makeASN
-
+from Utils import manejar_asignacion_atom, manejar_asignacion_exist, manejar_asignacion_galaxy, validar_nombre_variable
 
 def compAN():
     nasign = []
@@ -40,50 +40,20 @@ def compAN():
                                     
                             if (asistente[0] in res_asignation):
                                 for indice, lexema in enumerate(asistente):
-                                    if(indice == 1):
-                                        if (validar_variable(lexema) != True):
-                                            print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + " ES INVALIDO") 
+                                    if indice == 1:
+                                        if not validar_nombre_variable(lexema, count, line, nasign, res_asignation, bool_values):
                                             break
-                                        if (lexema in res_asignation or lexema in bool_values):
-                                            print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + "NO SE PERMITEN PALABRAS RESERVADAS")
+                                    elif indice == 2:
+                                        if lexema != "=":
+                                            print(f"LINEA {count} Error de sintaxis en la linea: {line} SIN SIGNO DE ASIGNACION =")
                                             break
-                                        if (lexema in nasign):
-                                            print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + " YA HA SIDO ASIGNADO")
-                                            break
-                                    elif(indice == 2):
-                                        if(lexema != "="):
-                                            print("LINEA "+ str(count)+ " Error de sintaxis en la linea: " + line + " SIN SIGNO DE ASIGNACION =") 
-                                            break
-                                    elif(indice == 3):
-                                        if(asistente[0] == "galaxy"):
-                                            match = re.search(r'"([^"]+)"', line)
-                                            if match:
-                                                texto_entre_comillas = match.group(1)
-                                                nasign.append(asistente[1]) 
-                                                typeAsignation.append(asistente[0])
-                                                idAsignation.append(len(nasign))
-                                                valueAsignation.append(texto_entre_comillas)
-                                            else:
-                                                print("LINEA "+ str(count)+ " ERROR no se encontro ninguna cadena")
-                                                break
-                                        elif(asistente[0] == "atom"):
-                                            if(lexema.isnumeric()):
-                                                nasign.append(asistente[1])
-                                                typeAsignation.append(asistente[0])
-                                                idAsignation.append(len(nasign))
-                                                valueAsignation.append(int(lexema))
-                                            else:
-                                                print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es digito")
-                                                break
-                                        elif(asistente[0] == "exist"):
-                                            if(lexema in bool_values):
-                                                nasign.append(asistente[1])
-                                                typeAsignation.append(asistente[0])
-                                                idAsignation.append(len(nasign))
-                                                valueAsignation.append(lexema)
-                                            else:
-                                                print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es booleano")
-                                                break
+                                    elif indice == 3:
+                                        if asistente[0] == "galaxy":
+                                            manejar_asignacion_galaxy(asistente, count, line, nasign, typeAsignation, idAsignation, valueAsignation)
+                                        elif asistente[0] == "atom":
+                                            manejar_asignacion_atom(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation)
+                                        elif asistente[0] == "exist":
+                                            manejar_asignacion_exist(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation, bool_values)
                                         break
                                 if(validarCiclosCondiciones(line) != "ninguna"):
                                     validar_ciclos_condiciones(line, count, validarCiclosCondiciones(line))
@@ -109,8 +79,8 @@ def compAN():
                                             else:
                                                 resultado = eval(cadenaMatematica)
                                                 valueAsignation[indexVariable] = resultado
-                            elif(ValidarImpLeer(line) != "ninguna"):
-                                if (ValidarImpLeer(line) == "imprimir"):
+                            elif(verifyImpRead(line) != "ninguna"):
+                                if (verifyImpRead(line) == "imprimir"):
                                     if(line.find("imprimir") == 0):
                                         
                                         patron = r'^imprimir\((?:[a-zA-Z_][a-zA-Z0-9_]*|\"[^\"]*\"|(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*)\s*\+\s*(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*))(?:\s*\+\s*(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*))*\)$'
@@ -118,7 +88,7 @@ def compAN():
                                             print("LINEA "+ str(count)+ " ERROR La instrucción de impresión es inválida.")
                                     else:
                                         print("LINEA "+ str(count)+ " ERROR de sintaxis imprimir siempre debe ir al inicio de la linea")
-                                elif ValidarImpLeer(line) == "leer":
+                                elif verifyImpRead(line) == "leer":
                                     indexLeer = line.find("leer.")
                                     auxLeer = line[indexLeer:]
 
@@ -202,3 +172,5 @@ def compAN():
     
     #---------------------------FINALMENTE PRESENTAMOS LA TABLA DE RESULTADOS------------------------------------
     tableResults(idAsignation, nasign, typeAsignation, valueAsignation, impEnable, readEnable)
+
+    

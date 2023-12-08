@@ -1,5 +1,5 @@
 import re
-from Utils import ValidarImpLeer
+from Utils import verifyImpRead as verify
 
 def head_asn(write_file):
     # Escribe las primeras líneas del archivo de salida
@@ -33,7 +33,7 @@ def makeASN(wf, lf, asign, valueAsignation, imp, read, alineacion, cc):
     # Recorremos cada línea en el archivo de entrada
     for line in lf:
         detect  = False  # Variable para rastrear si se encontró una operación válida en la línea
-        comp  = ValidarImpLeer(line)  # Determinamos si la línea es de imprimir o leer
+        comp  = verify(line)  # Determinamos si la línea es de imprimir o leer
 
         if comp  == "imprimir":
             # Buscamos variables para imprimir en la línea

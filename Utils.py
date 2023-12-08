@@ -50,13 +50,13 @@ def validar_variable(variable):
     patron = r'^[a-zA-Z_][a-zA-Z0-9_]*$'
     return bool(re.match(patron, variable))
 
-def ValidarImpLeer(variable):
-    inout = "ninguna"
-    if(variable.find("leer.") != -1):
-        inout = "leer"
-    elif(variable.find("imprimir(") != -1 or variable.find("imprimir (") != -1):
-        inout = "imprimir"
-    return inout
+def verifyImpRead(x):
+    onOut = "ninguna"
+    if(x.find("leer.") != -1):
+        onOut = "leer"
+    elif(x.find("imprimir(") != -1 or x.find("imprimir (") != -1):
+        onOut = "imprimir"
+    return onOut
 
 def validarCiclosCondiciones(ciclo):
     inout = "ninguna"
@@ -81,3 +81,46 @@ def format_ln(line):
     line = re.sub(r'\s+',' ', line).strip()
     line = re.sub(r'\<SPACE\>', ' ', line)
     return line
+
+
+
+def validar_nombre_variable(lexema, count, line, nasign, res_asignation, bool_values):
+        if not validar_variable(lexema):
+            print(f"LINEA {count} Error el nombre de la variable de la linea: {line} ES INVALIDO")
+            return False
+        if lexema in res_asignation or lexema in bool_values:
+            print(f"LINEA {count} Error el nombre de la variable de la linea: {line} NO SE PERMITEN PALABRAS RESERVADAS")
+            return False
+        if lexema in nasign:
+            print(f"LINEA {count} Error el nombre de la variable de la linea: {line} YA HA SIDO ASIGNADO")
+            return False
+        return True
+
+def manejar_asignacion_galaxy(asistente, count, line, nasign, typeAsignation, idAsignation, valueAsignation):
+    match = re.search(r'"([^"]+)"', line)
+    if match:
+        texto_entre_comillas = match.group(1)
+        nasign.append(asistente[1])
+        typeAsignation.append(asistente[0])
+        idAsignation.append(len(nasign))
+        valueAsignation.append(texto_entre_comillas)
+    else:
+        print(f"LINEA {count} ERROR no se encontro ninguna cadena")
+
+def manejar_asignacion_atom(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation):
+    if lexema.isnumeric():
+        nasign.append(asistente[1])
+        typeAsignation.append(asistente[0])
+        idAsignation.append(len(nasign))
+        valueAsignation.append(int(lexema))
+    else:
+        print(f"LINEA {count} ERROR el valor que se intenta guardar no es digito")
+
+def manejar_asignacion_exist(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation, bool_values):
+    if lexema in bool_values:
+        nasign.append(asistente[1])
+        typeAsignation.append(asistente[0])
+        idAsignation.append(len(nasign))
+        valueAsignation.append(lexema)
+    else:
+        print(f"LINEA {count} ERROR el valor que se intenta guardar no es booleano")
