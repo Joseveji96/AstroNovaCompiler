@@ -1,7 +1,7 @@
-
 import re
 
 class AnSiA():
+    # Método para obtener el número de columna en la tabla de análisis
     def obtener_columna(self, token):
         columna = -1
         if token == "ID":
@@ -26,9 +26,9 @@ class AnSiA():
             columna = 9
         elif token == "F":
             columna = 10
-        
         return columna
 
+    # Método para analizar la expresión matemática
     def analizarExpresionMatematica(self, cadena):
         pila = [0]
         regex = r'([A-Za-z_][A-Za-z0-9_]*|\d+|[-+*/()])'
@@ -37,6 +37,7 @@ class AnSiA():
         cadena = cadena.upper()
         number = 0
 
+        # Gramática y tabla de análisis
         gramatica = [
             {"E+T": "E"}, {"E-T": "E"}, {"T": "E"}, {"T*F": "T"},
             {"T/F": "T"}, {"F": "T"}, {"(E)": "F"}, {"ID": "F"},
@@ -53,11 +54,12 @@ class AnSiA():
             [" ",  "R5", "R5", "R5", "R5", " ", "R5", "R5", " ", " ", " "], [" ",  "R7", "R7", "R7", "R7", " ", "R7", "R7", " ", " ", " "]   
         ]
         
+        # Convertir identificadores a "ID"
         for i in range(len(tokens)):
             if re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', tokens[i]) or tokens[i].isdigit():
                 tokens[i] = "ID"
 
-
+        # Inicializar token actual
         if len(tokens) > 0:
             token_actual = tokens[number]
             number += 1 
@@ -90,9 +92,9 @@ class AnSiA():
 
                 
             elif accion_actual == "ACCEPT":
-                return(True)
+                return True
                 break
             else:
                 print("Error: expresion matematica no valida")
-                return(False)
+                return False
                 break

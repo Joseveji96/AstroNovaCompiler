@@ -1,23 +1,21 @@
-atom first = 1
-galaxy cadena = "la variable galaxy es una cadena"
-atom second = 0
-atom third = 0 + 1 * 5 + 20
-;num hola = 1
-;msjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
-exist b = true
-first = second
-for i in range(25)
-imprimir(cadena)
-imprimir(cadena)
-imprimir("Imprimiendo un texto que no es variable")
-imprimir("Hola Mundo")
-leer.Cad(cadena)
-imprimir(cadena)
-imprimir(first)
-leer.Num(first)
-leer.Num(first)
-imprimir(first)
-imprimir(third)
-imprimir(third)
-leer.Num(third)
-imprimir(third)
+;Prueba de atom
+atom a = 5
+
+;Prueba galaxy
+galaxy b = "AstroNova"
+
+;Prueba exist
+exist c = true
+
+;asignacion de valores
+atom x = 0
+atom y = 5
+x=y
+
+;expresion matematica
+atom expresion = 3 - 2 * 10
+
+imprimir(b)
+imprimir("Imprimir AstroNova")
+
+leer.Cad(b)

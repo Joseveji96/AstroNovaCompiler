@@ -1,20 +1,21 @@
 import  re  
 from Utils import tableResults
 from SintAnalizer import AnSiA as ansia
-from Utils import validar_variable, validar_ciclos_condiciones, validarCiclosCondiciones, verifyImpRead, format_ln
+from Utils import verifyStructs, verifyCicles,  verifyImpRead, format_ln, verifyNomb
 from ASNtoASM import head_asn, body_asn, makeASN
-from Utils import manejar_asignacion_atom, manejar_asignacion_exist, manejar_asignacion_galaxy, validar_nombre_variable
+from Utils import manejar_asignacion_atom, manejar_asignacion_exist, manejar_asignacion_galaxy
+from Utils import handle_general
 
 def compAN():
-    nasign = []
-    typeAsignation = []
-    valueAsignation = []
-    idAsignation = []
-    impEnable = []
-    readEnable = []
+    nasign = []     # Lista para almacenar nombres de variables
+    tasign = []     # Lista para almacenar tipos de variables
+    vasign = []     # Lista para almacenar valores de variables
+    idasign = []    # Lista para almacenar identificadores de variables
+    okRead = []     # Lista para almacenar variables marcadas como leídas
+    areImp = []     # Lista para almacenar variables marcadas como listas para impresión
 
-    res_asignation = ["atom", "galaxy", "exist"]
-    bool_values = ["true","false"]
+    varResAN = ["atom", "galaxy", "exist"]
+    onExist = ["true","false"]
 
     exploradorJW = ansia()
     count = 0
@@ -34,115 +35,69 @@ def compAN():
                             for indice, lexema in enumerate(asistente):
                                 if(lexema.isnumeric() and lexema not in nasign):
                                     nasign.append(lexema)
-                                    typeAsignation.append("int")
-                                    idAsignation.append(len(nasign))
-                                    valueAsignation.append(int(lexema))
+                                    tasign.append("int")
+                                    idasign.append(len(nasign))
+                                    vasign.append(int(lexema))
                                     
-                            if (asistente[0] in res_asignation):
+                            if (asistente[0] in varResAN):
                                 for indice, lexema in enumerate(asistente):
                                     if indice == 1:
-                                        if not validar_nombre_variable(lexema, count, line, nasign, res_asignation, bool_values):
+                                        if not verifyNomb(lexema, line, nasign, varResAN, onExist):
                                             break
                                     elif indice == 2:
                                         if lexema != "=":
-                                            print(f"LINEA {count} Error de sintaxis en la linea: {line} SIN SIGNO DE ASIGNACION =")
+                                            print(f"Error de sintaxis en la linea: {line} se esperaba =")
                                             break
                                     elif indice == 3:
                                         if asistente[0] == "galaxy":
-                                            manejar_asignacion_galaxy(asistente, count, line, nasign, typeAsignation, idAsignation, valueAsignation)
+                                            manejar_asignacion_galaxy(asistente, count, line, nasign, tasign, idasign, vasign)
                                         elif asistente[0] == "atom":
-                                            manejar_asignacion_atom(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation)
+                                            manejar_asignacion_atom(asistente, lexema, count, line, nasign, tasign, idasign, vasign)
                                         elif asistente[0] == "exist":
-                                            manejar_asignacion_exist(asistente, lexema, count, line, nasign, typeAsignation, idAsignation, valueAsignation, bool_values)
+                                            manejar_asignacion_exist(asistente, lexema, count, line, nasign, tasign, idasign, vasign, onExist)
                                         break
-                                if(validarCiclosCondiciones(line) != "ninguna"):
-                                    validar_ciclos_condiciones(line, count, validarCiclosCondiciones(line))
+                                if(verifyCicles(line) != "ninguna"):
+                                    verifyStructs(line, count, verifyCicles(line))
                                 else:
                                     if ('=' in asistente):
-                                        indiceIgual = asistente.index('=')
-                                        indexVariable = -1
+                                        eq = asistente.index('=')
+                                        ivar = -1
                                         tipoVariable = None
-                                        if (indiceIgual == 1):
-                                            indexVariable = nasign.index(asistente[0])
-                                            if (indexVariable != -1):
-                                                tipoVariable = typeAsignation[indexVariable]
+                                        if (eq == 1):
+                                            ivar = nasign.index(asistente[0])
+                                            if (ivar != -1):
+                                                tipoVariable = tasign[ivar]
                                             else:
-                                                print("LINEA "+ str(count)+ " ERROR no podemos asignar una variable no declarada")
+                                                print("Error en la linea "+ str(count)+ " no es posible asignar a variables declaradas")
                                         else:
                                             tipoVariable = asistente[0]
-                                            indexVariable = nasign.index(asistente[1])
+                                            ivar = nasign.index(asistente[1])
 
                                         if (tipoVariable == "atom") :
-                                            cadenaMatematica = ''.join(asistente[indiceIgual + 1:])
+                                            cadenaMatematica = ''.join(asistente[eq + 1:])
                                             if (not(exploradorJW.analizarExpresionMatematica(cadenaMatematica))):
-                                                print("LINEA "+ str(count)+ " ERROR expresion matematica incorrecta")
+                                                print("Error en la linea "+ str(count)+ " expresion matematica incorrecta")
                                             else:
                                                 resultado = eval(cadenaMatematica)
-                                                valueAsignation[indexVariable] = resultado
+                                                vasign[ivar] = resultado
                             elif(verifyImpRead(line) != "ninguna"):
                                 if (verifyImpRead(line) == "imprimir"):
                                     if(line.find("imprimir") == 0):
                                         
                                         patron = r'^imprimir\((?:[a-zA-Z_][a-zA-Z0-9_]*|\"[^\"]*\"|(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*)\s*\+\s*(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*))(?:\s*\+\s*(?:\"[^\"]*\"|[a-zA-Z_][a-zA-Z0-9_]*))*\)$'
                                         if re.match(patron, line) == None:
-                                            print("LINEA "+ str(count)+ " ERROR La instrucción de impresión es inválida.")
+                                            print("Error en la linea "+ str(count)+ " La impresión es inválida.")
                                     else:
-                                        print("LINEA "+ str(count)+ " ERROR de sintaxis imprimir siempre debe ir al inicio de la linea")
+                                        print("Error en la linea "+ str(count)+ " en instruccion imprimir")
                                 elif verifyImpRead(line) == "leer":
                                     indexLeer = line.find("leer.")
                                     auxLeer = line[indexLeer:]
 
                                     patron = r'^leer\.(Num|Cad|Bool)\([a-zA-Z_][a-zA-Z0-9_]*\)$'
                                     if re.match(patron, auxLeer) is None:
-                                        print("LINEA " + str(count) + " ERROR La instrucción de lectura es inválida.")
-
+                                        print("Error en la linea: " + str(count) + " La instrucción de lectura es inválida.")
                             else:
-                                if (validar_variable(asistente[0])):
-                                    for i in range(1, len(asistente)):
-                                        if(i == 1):    
-                                            if (asistente[i] == "="):
-                                                if (asistente[0] in nasign):
-                                                    celda = nasign.index(asistente[0])
-                                                else:
-                                                    print("LINEA "+ str(count)+ " Error no se puede asignar a una variable que no ah sido declarada")
-                                                    break
-                                        if (i == 2): 
-                                            if (validar_variable(asistente[i]) and asistente[i] not in bool_values and asistente[i] not in res_asignation):#Si lo que hay en el 3er lexema es el nombre de una variable verificar que exista 
-                                                if (asistente[i] in nasign):
-                                                    celda2 = nasign.index(asistente[i])
-                                                    if (typeAsignation[celda] == typeAsignation[celda2]): 
-                                                        valueAsignation[celda] = valueAsignation[celda2]
-                                                        break 
-                                                    else:
-                                                        print("LINEA "+ str(count)+ " Error no se puede asignar una variable de diferente tipo")
-                                                        break
-                                                else:
-                                                    print("LINEA "+ str(count)+ " Error no se puede asignar a una variable otra variable que no ah sido declarada")
-                                                    break
-                                            else: 
-                                                if(typeAsignation[celda] == "galaxy"):
-                                                    match = re.search(r'"([^"]+)"', line)
-                                                    if match:
-                                                        texto_entre_comillas = match.group(1)
-                                                        valueAsignation[celda] = texto_entre_comillas
-                                                    else:
-                                                        print("LINEA "+ str(count)+ " ERROR no se encontro ninguna cadena")
-                                                        break
-                                                elif(typeAsignation[celda] == "atom"):
-                                                    if(asistente[i].isdigit()):
-                                                        valueAsignation[celda] = asistente[i]
-                                                    else:
-                                                        print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es digito")
-                                                        break
-                                                elif(typeAsignation[celda] == "exist"):
-                                                    if(asistente[i] in bool_values):
-                                                        valueAsignation[celda] = asistente[i]
-                                                    else:
-                                                        print("ERROR en la linea: "+ str(count)+ " el tipo de dato no es Exist")
-                                                        break
-                                                break 
-                                else:
-                                    print("ERROR en la linea: "+ str(count)+ " variable invalida para operaciones")
+                                handle_general(asistente, nasign, tasign, vasign, onExist, count, line)
                     if line != '':
                         line = line + '\n'
                     write_file.write(line)
@@ -153,24 +108,22 @@ def compAN():
 
 
 
-
-
 # Se traduce el codigo a ensamblador.
     operacionesOrden = []
     for i in range(len(nasign)):
-        impEnable.append(False)
+        areImp.append(False)
     for i in range(len(nasign)):
-        readEnable.append(False)
+        okRead.append(False)
     try:
         with open(name + ".dep", "r") as leer_file, open(name + ".ASM", "w") as write_file:
             head_asn(write_file)
             content_count = 1
             body_asn(write_file)
-            makeASN(write_file, leer_file, nasign, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
+            makeASN(write_file, leer_file, nasign, vasign, areImp, okRead, operacionesOrden, content_count)
     except EnvironmentError:
         print("No se encontró el archivo")
     
     #---------------------------FINALMENTE PRESENTAMOS LA TABLA DE RESULTADOS------------------------------------
-    tableResults(idAsignation, nasign, typeAsignation, valueAsignation, impEnable, readEnable)
+    tableResults(idasign, nasign, tasign, vasign, areImp, okRead)
 
     
