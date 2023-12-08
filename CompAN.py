@@ -1,41 +1,12 @@
 import  re  
 from Utils import tableResults
 from SintAnalizer import AnSiA as ansia
-from Utils import validar_variable, validar_ciclos_condiciones, validarCiclosCondiciones, ValidarImpLeer
+from Utils import validar_variable, validar_ciclos_condiciones, validarCiclosCondiciones, ValidarImpLeer, format_ln
 from ASNtoASM import head_asn, body_asn, makeASN
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def compAN():
-    nameAsignation = []
+    nasign = []
     typeAsignation = []
     valueAsignation = []
     idAsignation = []
@@ -56,113 +27,88 @@ def compAN():
             with open(name+".dep", "w") as write_file:
                 for line in leer_file:
                     count += 1
+                    line = format_ln(line)
+                    asistente = line.split()
 
-                    line = re.sub(r';.*$','', line).strip()#Borra comentarios
-                    line = re.sub(r'(\".*?\")', lambda m: m.group(0).replace(" ", "<SPACE>"), line)
-                    line = re.sub(r'\s+',' ', line).strip()#Borra espacios
-                    line = re.sub(r'\<SPACE\>', ' ', line)
-
-                    aux = line
-                    aux = aux.split()
-                    #atom numero = 1
-                    if (len(aux) > 0): #Saber si no es una linea vacia
-                                        
-                            for indice, lexema in enumerate(aux):
-                                if(lexema.isnumeric() and lexema not in nameAsignation):
-                                    nameAsignation.append(lexema)
+                    if (len(asistente) > 0):          
+                            for indice, lexema in enumerate(asistente):
+                                if(lexema.isnumeric() and lexema not in nasign):
+                                    nasign.append(lexema)
                                     typeAsignation.append("int")
-                                    idAsignation.append(len(nameAsignation))
+                                    idAsignation.append(len(nasign))
                                     valueAsignation.append(int(lexema))
                                     
-                            if (aux[0] in res_asignation):
-                                for indice, lexema in enumerate(aux):
+                            if (asistente[0] in res_asignation):
+                                for indice, lexema in enumerate(asistente):
                                     if(indice == 1):
-                                        #Validamos que el nombre de la variable sea uno valido
                                         if (validar_variable(lexema) != True):
                                             print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + " ES INVALIDO") 
                                             break
-                                        #Validamos que el nombre de la variable no sea una palabra reservada
                                         if (lexema in res_asignation or lexema in bool_values):
                                             print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + "NO SE PERMITEN PALABRAS RESERVADAS")
                                             break
-                                        #Validar que no este en la tabla de declaraciones 
-                                        if (lexema in nameAsignation):
+                                        if (lexema in nasign):
                                             print("LINEA "+ str(count)+ " Error el nombre de la variable de la linea: " + line + " YA HA SIDO ASIGNADO")
                                             break
-                                    
-
-
                                     elif(indice == 2):
                                         if(lexema != "="):
                                             print("LINEA "+ str(count)+ " Error de sintaxis en la linea: " + line + " SIN SIGNO DE ASIGNACION =") 
                                             break
-                                    
-
-
                                     elif(indice == 3):
-                                        if(aux[0] == "galaxy"):
+                                        if(asistente[0] == "galaxy"):
                                             match = re.search(r'"([^"]+)"', line)
                                             if match:
                                                 texto_entre_comillas = match.group(1)
-                                                nameAsignation.append(aux[1]) 
-                                                typeAsignation.append(aux[0])
-                                                idAsignation.append(len(nameAsignation))
+                                                nasign.append(asistente[1]) 
+                                                typeAsignation.append(asistente[0])
+                                                idAsignation.append(len(nasign))
                                                 valueAsignation.append(texto_entre_comillas)
                                             else:
                                                 print("LINEA "+ str(count)+ " ERROR no se encontro ninguna cadena")
                                                 break
-                                        elif(aux[0] == "atom"):
+                                        elif(asistente[0] == "atom"):
                                             if(lexema.isnumeric()):
-                                                nameAsignation.append(aux[1])
-                                                typeAsignation.append(aux[0])
-                                                idAsignation.append(len(nameAsignation))
+                                                nasign.append(asistente[1])
+                                                typeAsignation.append(asistente[0])
+                                                idAsignation.append(len(nasign))
                                                 valueAsignation.append(int(lexema))
                                             else:
                                                 print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es digito")
                                                 break
-                                        elif(aux[0] == "exist"):
+                                        elif(asistente[0] == "exist"):
                                             if(lexema in bool_values):
-                                                nameAsignation.append(aux[1])
-                                                typeAsignation.append(aux[0])
-                                                idAsignation.append(len(nameAsignation))
+                                                nasign.append(asistente[1])
+                                                typeAsignation.append(asistente[0])
+                                                idAsignation.append(len(nasign))
                                                 valueAsignation.append(lexema)
                                             else:
                                                 print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es booleano")
                                                 break
-                                        #Solo necesitamos ver los lexemas del 0 al 3
                                         break
-                                    
-                            #Analiza ciclos y condiciones
                                 if(validarCiclosCondiciones(line) != "ninguna"):
                                     validar_ciclos_condiciones(line, count, validarCiclosCondiciones(line))
                                 else:
-                                    #Analiza expresiones matematicas las evalua y guarda el resultado en su respectiva variable
-                                    if ('=' in aux):
-                                        indiceIgual = aux.index('=')
+                                    if ('=' in asistente):
+                                        indiceIgual = asistente.index('=')
                                         indexVariable = -1
                                         tipoVariable = None
                                         if (indiceIgual == 1):
-                                            indexVariable = nameAsignation.index(aux[0])
+                                            indexVariable = nasign.index(asistente[0])
                                             if (indexVariable != -1):
                                                 tipoVariable = typeAsignation[indexVariable]
                                             else:
                                                 print("LINEA "+ str(count)+ " ERROR no podemos asignar una variable no declarada")
                                         else:
-                                            tipoVariable = aux[0]
-                                            indexVariable = nameAsignation.index(aux[1])
+                                            tipoVariable = asistente[0]
+                                            indexVariable = nasign.index(asistente[1])
 
                                         if (tipoVariable == "atom") :
-                                            cadenaMatematica = ''.join(aux[indiceIgual + 1:])
+                                            cadenaMatematica = ''.join(asistente[indiceIgual + 1:])
                                             if (not(exploradorJW.analizarExpresionMatematica(cadenaMatematica))):
                                                 print("LINEA "+ str(count)+ " ERROR expresion matematica incorrecta")
                                             else:
-                                                #print("Cadena Valida")
                                                 resultado = eval(cadenaMatematica)
                                                 valueAsignation[indexVariable] = resultado
-
-                        
-                            #Si encuentra la instruccion de imprimir o leer validara la estructura de las sentencias
-                            #A partir de expresiones regulares
                             elif(ValidarImpLeer(line) != "ninguna"):
                                 if (ValidarImpLeer(line) == "imprimir"):
                                     if(line.find("imprimir") == 0):
@@ -180,25 +126,20 @@ def compAN():
                                     if re.match(patron, auxLeer) is None:
                                         print("LINEA " + str(count) + " ERROR La instrucción de lectura es inválida.")
 
-                        
-                            
-
-
-                            #si no es una linea vacia y no se encuentra las palabras reservadas de asignacion
                             else:
-                                if (validar_variable(aux[0])):
-                                    for i in range(1, len(aux)):
+                                if (validar_variable(asistente[0])):
+                                    for i in range(1, len(asistente)):
                                         if(i == 1):    
-                                            if (aux[i] == "="):
-                                                if (aux[0] in nameAsignation):
-                                                    celda = nameAsignation.index(aux[0])
+                                            if (asistente[i] == "="):
+                                                if (asistente[0] in nasign):
+                                                    celda = nasign.index(asistente[0])
                                                 else:
                                                     print("LINEA "+ str(count)+ " Error no se puede asignar a una variable que no ah sido declarada")
                                                     break
                                         if (i == 2): 
-                                            if (validar_variable(aux[i]) and aux[i] not in bool_values and aux[i] not in res_asignation):#Si lo que hay en el 3er lexema es el nombre de una variable verificar que exista 
-                                                if (aux[i] in nameAsignation):
-                                                    celda2 = nameAsignation.index(aux[i])
+                                            if (validar_variable(asistente[i]) and asistente[i] not in bool_values and asistente[i] not in res_asignation):#Si lo que hay en el 3er lexema es el nombre de una variable verificar que exista 
+                                                if (asistente[i] in nasign):
+                                                    celda2 = nasign.index(asistente[i])
                                                     if (typeAsignation[celda] == typeAsignation[celda2]): 
                                                         valueAsignation[celda] = valueAsignation[celda2]
                                                         break 
@@ -218,14 +159,14 @@ def compAN():
                                                         print("LINEA "+ str(count)+ " ERROR no se encontro ninguna cadena")
                                                         break
                                                 elif(typeAsignation[celda] == "atom"):
-                                                    if(aux[i].isdigit()):
-                                                        valueAsignation[celda] = aux[i]
+                                                    if(asistente[i].isdigit()):
+                                                        valueAsignation[celda] = asistente[i]
                                                     else:
                                                         print("LINEA "+ str(count)+ " ERROR el valor que se intenta guardar no es digito")
                                                         break
                                                 elif(typeAsignation[celda] == "exist"):
-                                                    if(aux[i] in bool_values):
-                                                        valueAsignation[celda] = aux[i]
+                                                    if(asistente[i] in bool_values):
+                                                        valueAsignation[celda] = asistente[i]
                                                     else:
                                                         print("ERROR en la linea: "+ str(count)+ " el tipo de dato no es Exist")
                                                         break
@@ -239,140 +180,25 @@ def compAN():
         print("No se encontro el archivo")
     count = 0
 
+
+
+
+
+
 # Se traduce el codigo a ensamblador.
     operacionesOrden = []
-    for i in range(len(nameAsignation)):
+    for i in range(len(nasign)):
         impEnable.append(False)
-    for i in range(len(nameAsignation)):
+    for i in range(len(nasign)):
         readEnable.append(False)
     try:
         with open(name + ".dep", "r") as leer_file, open(name + ".ASM", "w") as write_file:
             head_asn(write_file)
             content_count = 1
-            makeASN(write_file, leer_file, name, nameAsignation, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
+            makeASN(write_file, leer_file, name, nasign, valueAsignation, impEnable, readEnable, operacionesOrden, content_count)
             body_asn(write_file, operacionesOrden)
     except EnvironmentError:
         print("No se encontró el archivo")
     
     #---------------------------FINALMENTE PRESENTAMOS LA TABLA DE RESULTADOS------------------------------------
-    tableResults(idAsignation, nameAsignation, typeAsignation, valueAsignation, impEnable, readEnable)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# #--------------------Intentamos leer y escribir AstroNova.asm-------------------------------
-#     try:
-#         with open(name + ".dep", "r") as leer_file:
-#             with open(name + ".ASM", "w") as write_file:
-#                 #Escribe las primeras lineas obligatorias
-#                 write_file.write("include MACROS.INC\n"
-#                                 "pila    segment para stack 'stack'\n"
-#                                 "        dw 500 dup(?)\n"
-#                                 "pila    ends\n"
-#                                 "\n"
-#                                 "datos   segment para public 'data'\n"
-#                                 "    empty       db      13, 10, '$'\n")
-#                 content_count = 1
-# #   -       -   Ingresa a un arreglo la declaracion de datos (imp o leer)
-#                 for line in leer_file:
-#                     find = False
-#                     aux = line.strip().split()
-#                     validar = ValidarImpLeer(line)
-#                     if validar != "ninguna":
-#                         for index, i in enumerate(nameAsignation):
-#                             if i in line and validar == "imprimir" and impEnable[index] == False:
-#                                 write_file.write(f"    esc_{i} db '  {valueAsignation[index]}$'\n")
-#                                 impEnable[index] = True
-#                                 operacionesOrden.append(f"IMPRIMIR esc_{i}, empty")
-#                                 find = True
-#                             elif i in line and validar == "imprimir" and readEnable[index] == False:
-#                                 operacionesOrden.append(f"IMPRIMIR esc_{i}, empty")
-#                                 find = True
-#                             elif i in line and validar == "leer" and readEnable[index] == False:
-#                                 write_file.write(f"    leer_{i} db 254,?,254 dup('$')\n")
-#                                 readEnable[index] = True
-#                                 operacionesOrden.append(f"LEER leer_{i}, empty")
-#                                 impEnable[index] = True
-#                                 find = True 
-#                             elif i in line and validar == "imprimir" and impEnable[index] == True and readEnable[index] == True:
-#                                 operacionesOrden.append(f"IMPRIMIR leer_{i}, empty")
-#                                 find = True
-#                             elif i in line and validar == "leer" and readEnable[index] == True:
-#                                 operacionesOrden.append(f"LEER leer_{i}, empty")
-#                                 find = True
-
-#                     if find == False and validar == "imprimir":
-#                         match = re.search(r'"([^"]+)"', line)
-#                         if match:
-#                             texto_entre_comillas = match.group(1) #guarda el texto entre comillas para ingresar el valor al asm
-#                             write_file.write(f"    text_{content_count} db '  {texto_entre_comillas}$'\n")
-#                             operacionesOrden.append(f"IMPRIMIR text_{content_count}, empty")
-#                             content_count+=1 
-#                         else:
-#                             print("ERROR no se encontro ninguna cadena para ASM")
-#                 #Escribimos las lineas obligatorias del segmento de datos
-#                 write_file.write(
-#                     "datos   ends \n"
-#                     "extra   segment para public 'data'\n"
-#                     "extra   ends\n\n"
-#                     "public  pp\n"
-#                     "assume  cs:codigo,ds:datos,es:extra,ss:pila\n\n"
-#                     "codigo  segment para public 'code'\n"
-#                     "pp      proc    far\n"
-#                     "    push    ds\n"
-#                     "    mov     ax,0\n"
-#                     "    push    ax\n"
-#                     "    mov     ax,datos\n"
-#                     "    mov     ds,ax\n"
-#                     "    mov     ax,extra\n"
-#                     "    mov     es,ax\n")
-#                 #Escribimos las operaciones en el segmento de datos
-#                 for i in range(len(operacionesOrden)):
-#                     write_file.write("    "+operacionesOrden[i] + "\n")
-#                 write_file.write(
-#                     "   ret \n"
-#                     "pp   endp \n"
-#                     "codigo ends \n"
-#                     "   end pp \n"
-#                     )
-#     except EnvironmentError:
-#         print("No se encontró el archivo")
+    tableResults(idAsignation, nasign, typeAsignation, valueAsignation, impEnable, readEnable)
