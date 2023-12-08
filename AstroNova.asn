@@ -1,0 +1,23 @@
+atom first = 1
+galaxy cadena = "la variable galaxy es una cadena"
+atom second = 0
+atom third = 0 + 1 * 5 + 20
+;num hola = 1
+;msjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
+exist b = true
+first = second
+for i in range(25)
+imprimir(cadena)
+imprimir(cadena)
+imprimir("Imprimiendo un texto que no es variable")
+imprimir("Hola Mundo")
+leer.Cad(cadena)
+imprimir(cadena)
+imprimir(first)
+leer.Num(first)
+leer.Num(first)
+imprimir(first)
+imprimir(third)
+imprimir(third)
+leer.Num(third)
+imprimir(third)
