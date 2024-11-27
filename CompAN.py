@@ -1,3 +1,5 @@
+#Codigo desarrollado por Jose Eduardo Velazco Jimenez
+#NC-20291027
 import  re  
 from Utils import tableResults
 from SintAnalizer import AnSiA as ansia
@@ -28,6 +30,7 @@ def compAN():
             with open(name+".dep", "w") as write_file:
                 for line in leer_file:
                     count += 1
+                    # Formatear la línea para eliminar comentarios y espacios innecesarios
                     line = format_ln(line)
                     asistente = line.split()
 
@@ -42,13 +45,16 @@ def compAN():
                             if (asistente[0] in varResAN):
                                 for indice, lexema in enumerate(asistente):
                                     if indice == 1:
+                                        # Verificar validez del nombre de la variable
                                         if not verifyNomb(lexema, line, nasign, varResAN, onExist):
                                             break
                                     elif indice == 2:
+                                        # Verificar si se encuentra el operador de asignación (=)
                                         if lexema != "=":
                                             print(f"Error de sintaxis en la linea: {line} se esperaba =")
                                             break
                                     elif indice == 3:
+                                         # Manejar la asignación según el tipo de variable
                                         if asistente[0] == "galaxy":
                                             manejar_asignacion_galaxy(asistente, count, line, nasign, tasign, idasign, vasign)
                                         elif asistente[0] == "atom":
@@ -56,6 +62,7 @@ def compAN():
                                         elif asistente[0] == "exist":
                                             manejar_asignacion_exist(asistente, lexema, count, line, nasign, tasign, idasign, vasign, onExist)
                                         break
+                                # Verificar y manejar estructuras de control y cíclos
                                 if(verifyCicles(line) != "ninguna"):
                                     verifyStructs(line, count, verifyCicles(line))
                                 else:
@@ -63,6 +70,7 @@ def compAN():
                                         eq = asistente.index('=')
                                         ivar = -1
                                         tipoVariable = None
+                                        # Identificar el tipo de variable y su índice en las listas
                                         if (eq == 1):
                                             ivar = nasign.index(asistente[0])
                                             if (ivar != -1):
@@ -72,7 +80,7 @@ def compAN():
                                         else:
                                             tipoVariable = asistente[0]
                                             ivar = nasign.index(asistente[1])
-
+                                        # Evaluar y asignar el resultado de expresiones matemáticas para variables 'atom'
                                         if (tipoVariable == "atom") :
                                             cadenaMatematica = ''.join(asistente[eq + 1:])
                                             if (not(exploradorJW.analizarExpresionMatematica(cadenaMatematica))):
@@ -97,7 +105,9 @@ def compAN():
                                     if re.match(patron, auxLeer) is None:
                                         print("Error en la linea: " + str(count) + " La instrucción de lectura es inválida.")
                             else:
+                                # Manejar asignaciones generales
                                 handle_general(asistente, nasign, tasign, vasign, onExist, count, line)
+                    # Escribir la línea formateada en el archivo de salida
                     if line != '':
                         line = line + '\n'
                     write_file.write(line)
@@ -115,6 +125,7 @@ def compAN():
     for i in range(len(nasign)):
         okRead.append(False)
     try:
+        #apertura del AstroNova.dep para pasarlo a ASN
         with open(name + ".dep", "r") as leer_file, open(name + ".ASM", "w") as write_file:
             head_asn(write_file)
             content_count = 1
